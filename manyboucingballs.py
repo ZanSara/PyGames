@@ -20,29 +20,25 @@ class Ball(pygame.sprite.Sprite):
     def __init__(self, speed):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load('images/do.gif')
-        #area = pygame.display.get_surface()
-        #self.area = area.get_rect()
         pos = pygame.image.load('images/do.gif').get_rect()
         self.position = pos.move(0, 480)
         self.size= (self.image.get_width(), self.image.get_height())
         self.speed = speed
         self.time = 1
         self.acc = 0.5
-        self.active = 1
     def update(self, screen):
-        newpos = self.calcnewpos(screen)
-        self.position = newpos
+        self.position = self.calcnewpos(screen)
     def calcnewpos(self, screen):
-        self.time = self.time + 1
         """Simulate physics """
+        self.time = self.time + 1
         newpos = self.position.move(self.speed)
         speed = list(self.speed)
+        #This time I set a different behavior for the screen borders
         if newpos.left < 0:
             newpos.left = 0
             speed[0] *= -1
-        if newpos.right >= screen.get_width():
-            newpos.right = screen.get_width()
-            speed[0] *= -1
+        if newpos.right > screen.get_width():
+            self.kill()
         if newpos.top < 0:
             newpos.top = 0
             speed[1] *= -1
@@ -55,8 +51,6 @@ class Ball(pygame.sprite.Sprite):
         return newpos
     def set_a(self, acc):
         self.acc = acc
-    def set_active(self, value):
-        self.active = value
     def set_speed(self, vec):
         self.speed = vec
     def get_size(self):
@@ -66,18 +60,16 @@ class Ball(pygame.sprite.Sprite):
 
 
 def main():
-    # Initialise screen
+    
     pygame.init()
     screen = pygame.display.set_mode((640, 400))
-    pygame.display.set_caption('Boucing Ball')
+    pygame.display.set_caption('Many Buoncing Balls')
 
-    # Fill background
     background = pygame.Surface(screen.get_size())
     background = background.convert()
     bgcolor = (250, 250, 200)
     background.fill(bgcolor)
 
-    # Display some text
     font = pygame.font.Font(None, 50)
     text = font.render("Ready?", 1, (0, 0, 0))
     textpos = text.get_rect()
@@ -85,23 +77,21 @@ def main():
     textpos.centery = background.get_rect().centery
     background.blit(text, textpos)
 
-    #Create objects
+    #Create the group and the first ball
     balls = pygame.sprite.Group()
-    ball = Ball((9, -60))
+    ball = []
+    ball.append(Ball((15, -60)))
     balls.add(ball)
     
-    #Create the "dirty rects" background
-    dirty = pygame.Surface(ball.get_size()).convert()
+    dirty = pygame.Surface(ball[0].get_size()).convert() #knowing that all balls are equal
     dirty.fill(bgcolor)
     
-    #Display the text and starts the game
     screen.blit(background, (0, 0))
     pygame.display.flip()
     time.wait(1000)
     text.fill(bgcolor)
     screen.blit(text, textpos)
     
-    # Event loop
     #pygame.time.Clock.tick(25)
     n = 0
     while 1:
@@ -111,13 +101,15 @@ def main():
             for event in pygame.event.get():
                 if event.type == QUIT:
                     return
-            if abs(ball.speed[0]) < 1:
-                time.wait(1000)
-                return
             #Recalculate the image to be displayed
-            screen.blit(dirty, ball.position)
-            ball.update(screen)
-            screen.blit(ball.image, ball.position)
+            i = 0
+            for b in ball:
+                i += 1
+                screen.blit(dirty, b.position)
+                b.update(screen)
+                screen.blit(b.image, b.position)
+                if b.position.x > 200 and b.position.x <222:
+                    ball.append(Ball((15, -60)))
             pygame.display.flip()
 
 
