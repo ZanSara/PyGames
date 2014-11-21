@@ -1,107 +1,100 @@
 #
 # Just a boucing ball, to get used to PyGame
 
-try:
-        import sys
-        import random
-        import math
-        import os
-        import pygame
-        from pygame import time
-        #from pygame import *
-        from pygame.locals import *
-except ImportError, err:
-        print "couldn't load module. %s" % (err)
-        sys.exit(2)
-
+import sys
+import random
+import math
+import os
+import pygame
+from pygame import time
+from pygame.locals import *
 
 
 class Ball(pygame.sprite.Sprite):
     def __init__(self, speed):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load('images/do.gif')
-        #area = pygame.display.get_surface()
-        #self.area = area.get_rect()
-        pos = pygame.image.load('images/do.gif').get_rect()
-        self.position = pos.move(0, 480)
+        self.position = self.image.get_rect().move(0, 480)
         self.size= (self.image.get_width(), self.image.get_height())
         self.speed = speed
         self.time = 1
         self.acc = 0.5
-        self.active = 1
     def update(self, screen):
-        newpos = self.calcnewpos(screen)
-        self.position = newpos
+        self.position = self.calcnewpos(screen)
     def calcnewpos(self, screen):
-        self.time = self.time + 1
         """Simulate physics """
+        self.time = self.time + 1
         newpos = self.position.move(self.speed)
         speed = list(self.speed)
         if newpos.left < 0:
             newpos.left = 0
             speed[0] *= -1
-        if newpos.right >= screen.get_width():
-            newpos.right = screen.get_width()
-            speed[0] *= -1
+        if newpos.right > screen.get_width():
+            self.kill()
         if newpos.top < 0:
             newpos.top = 0
             speed[1] *= -1
         if newpos.top >= screen.get_height() - 20:
             newpos.top = screen.get_height() - 20
             speed[1] = -speed[1] + (speed[1]*0.1)
-        vxf = speed[0]-speed[0]*0.005
-        vyf = speed[1] + self.acc * self.time
-        self.speed = (vxf,vyf)
+        speed[0] += -speed[0]*0.005
+        speed[1] += self.acc * self.time
+        self.speed = speed
         return newpos
     def set_a(self, acc):
         self.acc = acc
-    def set_active(self, value):
-        self.active = value
-    def set_speed(self, vec):
-        self.speed = vec
+    def set_speed(self, speed):
+        self.speed = speed
     def get_size(self):
         print self.size
         return self.size
-        
 
+
+
+def fireball(ispeed, balls):
+    #Simply creates a new ball in the 'balls' group
+    balls.add(Ball(ispeed))
+    
+def write(text, font, size, color):
+    # Returns a Surface containing your text
+    font = pygame.font.Font(font, size)
+    text = font.render(text, 1, color)
+    return text
 
 def main():
-    # Initialise screen
     pygame.init()
     screen = pygame.display.set_mode((640, 400))
-    pygame.display.set_caption('Bouncing Ball')
+    pygame.display.set_caption('Fire Balls')
 
-    # Fill background
     background = pygame.Surface(screen.get_size())
     background = background.convert()
     bgcolor = (250, 250, 200)
     background.fill(bgcolor)
+    screen.blit(background, (0, 0))
 
-    # Display some text
-    font = pygame.font.Font(None, 50)
-    text = font.render("Ready?", 1, (0, 0, 0))
+    text = write('Ready?', None, 50, (0,0,0))
     textpos = text.get_rect()
     textpos.centerx = background.get_rect().centerx
     textpos.centery = background.get_rect().centery
-    background.blit(text, textpos)
+    screen.blit(text, textpos)
 
-    #Create objects
     balls = pygame.sprite.Group()
-    ball = Ball((9, -60))
-    balls.add(ball)
+    ispeed = (15, -60)
+    fireball(ispeed, balls)
     
-    #Create the "dirty rects" background
-    dirty = pygame.Surface(ball.get_size()).convert()
+    dirty = pygame.Surface(balls.sprites()[0].get_size()).convert()
     dirty.fill(bgcolor)
     
-    #Display the text and starts the game
-    screen.blit(background, (0, 0))
     pygame.display.flip()
     time.wait(1000)
     text.fill(bgcolor)
     screen.blit(text, textpos)
     
-    # Event loop
+    text = write('Press F to fire a ball, and q to quit', None, 25, (0,0,0))
+    textpos = text.get_rect()
+    textpos.centerx = background.get_rect().centerx
+    screen.blit(text, textpos)
+    
     #pygame.time.Clock.tick(25)
     n = 0
     while 1:
@@ -109,15 +102,18 @@ def main():
         if n == 499999: #
             n = 0       #
             for event in pygame.event.get():
-                if event.type == QUIT:
+                if event.type == QUIT or (event.type == KEYDOWN and event.key == K_q):
                     return
-            if abs(ball.speed[0]) < 1:
-                time.wait(1000)
-                return
+                if event.type == KEYDOWN and event.key == K_f:
+                    fireball(ispeed, balls)
             #Recalculate the image to be displayed
-            screen.blit(dirty, ball.position)
-            ball.update(screen)
-            screen.blit(ball.image, ball.position)
+            i = 0
+            for b in balls.sprites():
+                screen.blit(dirty, b.position)
+                b.update(screen)
+                screen.blit(b.image, b.position)
+                
+            screen.blit(text, textpos)
             pygame.display.flip()
 
 

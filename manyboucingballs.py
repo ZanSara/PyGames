@@ -10,13 +10,13 @@ try:
         from pygame import time
         #from pygame import *
         from pygame.locals import *
+        import cevent
 except ImportError, err:
         print "couldn't load module. %s" % (err)
         sys.exit(2)
 
 
-
-class Ball(pygame.sprite.Sprite):
+class Ball(pygame.sprite.Sprite, CEvent):
     def __init__(self, speed):
         pygame.sprite.Sprite.__init__(self)
         self.image = pygame.image.load('images/do.gif')
@@ -56,14 +56,20 @@ class Ball(pygame.sprite.Sprite):
     def get_size(self):
         print self.size
         return self.size
-        
 
+        
+def fireball():
+    #Create the group and the first ball
+    balls = pygame.sprite.Group()
+    ball = []
+    ball.append(Ball((15, -60)))
+    balls.add(ball)
 
 def main():
     
     pygame.init()
     screen = pygame.display.set_mode((640, 400))
-    pygame.display.set_caption('Many Buoncing Balls')
+    pygame.display.set_caption('Many Bouncing Balls')
 
     background = pygame.Surface(screen.get_size())
     background = background.convert()
@@ -77,11 +83,7 @@ def main():
     textpos.centery = background.get_rect().centery
     background.blit(text, textpos)
 
-    #Create the group and the first ball
-    balls = pygame.sprite.Group()
-    ball = []
-    ball.append(Ball((15, -60)))
-    balls.add(ball)
+    fireball()
     
     dirty = pygame.Surface(ball[0].get_size()).convert() #knowing that all balls are equal
     dirty.fill(bgcolor)
