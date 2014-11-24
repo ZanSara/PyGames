@@ -1,5 +1,5 @@
 #
-# Just a boucing ball, to get used to PyGame
+# Fire a lot of bouncing balls and learn how to control keyboard input
 
 import sys
 import random
@@ -9,7 +9,7 @@ import pygame
 from pygame import time
 from pygame.locals import *
 
-
+#CLASSES
 class Ball(pygame.sprite.Sprite):
     def __init__(self, speed):
         pygame.sprite.Sprite.__init__(self)
@@ -26,10 +26,10 @@ class Ball(pygame.sprite.Sprite):
         self.time = self.time + 1
         newpos = self.position.move(self.speed)
         speed = list(self.speed)
-        if newpos.left < 0:
-            newpos.left = 0
+        if newpos.right < 0:
+            newpos.right = 0
             speed[0] *= -1
-        if newpos.right > screen.get_width():
+        if newpos.left > screen.get_width():
             self.kill()
         if newpos.top < 0:
             newpos.top = 0
@@ -46,22 +46,31 @@ class Ball(pygame.sprite.Sprite):
     def set_speed(self, speed):
         self.speed = speed
     def get_size(self):
-        print self.size
         return self.size
 
 
-
+# UTILITIES
 def fireball(ispeed, balls):
     #Simply creates a new ball in the 'balls' group
-    balls.add(Ball(ispeed))
+    ball = Ball(ispeed)
+    pygame.sprite.Sprite.__init__(ball)
+    balls.add(ball)
     
-def write(text, font, size, color):
+def write(text, font, size, color, posx, posy):
     # Returns a Surface containing your text
     font = pygame.font.Font(font, size)
     text = font.render(text, 1, color)
-    return text
+    textpos = text.get_rect()
+    if posx:
+        textpos.centerx = posx
+    if posy:
+        textpos.centery = posy
+    return {"surface" : text, "rect" : textpos}
+
+
 
 def main():
+    # Intro
     pygame.init()
     screen = pygame.display.set_mode((640, 400))
     pygame.display.set_caption('Fire Balls')
@@ -72,12 +81,10 @@ def main():
     background.fill(bgcolor)
     screen.blit(background, (0, 0))
 
-    text = write('Ready?', None, 50, (0,0,0))
-    textpos = text.get_rect()
-    textpos.centerx = background.get_rect().centerx
-    textpos.centery = background.get_rect().centery
-    screen.blit(text, textpos)
+    text = write('Ready?', None, 50, (0,0,0), background.get_rect().centerx, background.get_rect().centery)
+    screen.blit(text["surface"], text["rect"])
 
+    # Init the game
     balls = pygame.sprite.Group()
     ispeed = (15, -60)
     fireball(ispeed, balls)
@@ -87,14 +94,13 @@ def main():
     
     pygame.display.flip()
     time.wait(1000)
-    text.fill(bgcolor)
-    screen.blit(text, textpos)
+    text["surface"].fill(bgcolor)
+    screen.blit(text["surface"], text["rect"])
     
-    text = write('Press F to fire a ball, and q to quit', None, 25, (0,0,0))
-    textpos = text.get_rect()
-    textpos.centerx = background.get_rect().centerx
-    screen.blit(text, textpos)
+    text = write('Press F to fire a ball, and q to quit', None, 25, (0,0,0), background.get_rect().centerx, background.get_rect().y)
+    screen.blit(text["surface"], text["rect"])
     
+    #Game Loop
     #pygame.time.Clock.tick(25)
     n = 0
     while 1:
@@ -113,7 +119,7 @@ def main():
                 b.update(screen)
                 screen.blit(b.image, b.position)
                 
-            screen.blit(text, textpos)
+            screen.blit(text["surface"], text["rect"])
             pygame.display.flip()
 
 
