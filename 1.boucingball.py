@@ -23,7 +23,7 @@ class Ball(pygame.sprite.Sprite):
         #area = pygame.display.get_surface()
         #self.area = area.get_rect()
         pos = pygame.image.load('images/do.gif').get_rect()
-        self.position = pos.move(0, 480)
+        self.position = pygame.image.load('images/do.gif').get_rect().move(0, 480)
         self.size= (self.image.get_width(), self.image.get_height())
         self.speed = speed
         self.time = 1
